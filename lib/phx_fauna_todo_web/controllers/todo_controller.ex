@@ -25,25 +25,5 @@ defmodule PhxFaunaTodoWeb.TodoController do
   end
 
   def delete(conn, %{"id" => id}) do
-    # query = """
-    #   let toDelete = Todo.byId(#{id})
-    #   toDelete.delete()
-    # """
-
-    # execute_query(query, conn)
-  end
-
-  defp execute_query(query, conn) do
-    case PhxFaunaTodo.Todos.Faunadoo.query(query) do
-      {:ok, result} ->
-        conn
-        |> put_status(:ok)
-        |> json(result)
-
-      {:error, reason} ->
-        conn
-        |> put_status(:internal_server_error)
-        |> json(%{error: "Failed to execute query: #{reason}"})
-    end
   end
 end
