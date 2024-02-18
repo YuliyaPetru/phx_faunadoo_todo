@@ -4,9 +4,8 @@ defmodule PhxFaunaTodo.Todos do
   """
 
   import Ecto.Query, warn: false
-  alias PhxFaunaTodo.Repo
-
   alias PhxFaunaTodo.Todos.Todo
+  alias PhxFaunaTodo.Faunarepo, as: Repo
 
   @doc """
   Returns the list of todos.
@@ -18,71 +17,67 @@ defmodule PhxFaunaTodo.Todos do
 
   """
   def list_todos do
-    Repo.all(Todo)
+    Repo.query("""
+      Todo.all()
+    """)
   end
 
   @doc """
   Gets a single todo.
 
-  Raises `Ecto.NoResultsError` if the Todo does not exist.
-
-  ## Examples
-
-      iex> get_todo!(123)
-      %Todo{}
-
-      iex> get_todo!(456)
-      ** (Ecto.NoResultsError)
-
   """
-  def get_todo!(id), do: Repo.get!(Todo, id)
+  def get_todo!(id) do
+    Repo.query("""
+      Todo.byId(#{id})
+    """)
+  end
+
 
   @doc """
   Creates a todo.
 
   ## Examples
 
-      iex> create_todo(%{field: value})
-      {:ok, %Todo{}}
-
-      iex> create_todo(%{field: bad_value})
-      {:error, %Ecto.Changeset{}}
-
   """
-  def create_todo(attrs \\ %{}) do
-    %Todo{}
-    |> Todo.changeset(attrs)
-    |> Repo.insert()
+  def create_todo(%{todo: todo, completed: completed}) do
+    Repo.query("""
+    Todo.create({"todo": "#{todo}", "completed": #{completed}})
+    """)
   end
 
   @doc """
   Updates a todo.
 
-  ## Examples
-
-      iex> update_todo(todo, %{field: new_value})
-      {:ok, %Todo{}}
-
-      iex> update_todo(todo, %{field: bad_value})
-      {:error, %Ecto.Changeset{}}
-
   """
-  def update_todo(%Todo{} = todo, attrs) do
-    todo
-    |> Todo.changeset(attrs)
-    |> Repo.update()
+  def update_todo(%{id: id, todo_params: todo_params}) do
+    update_parts = todo_params
+      |> Enum.map(fn {key, value} -> 
+        # Check if the value is a boolean or a string to format it correctly
+        formatted_value = case value do
+          true -> "true"
+          false -> "false"
+          _ -> "\"#{value}\"" # Assuming all other values are strings, add quotes
+        end
+
+        "#{key}: #{formatted_value}"
+      end)
+      |> Enum.join(",\n    ")
+    
+    query = """
+      let todo = Todo.byId("#{id}")
+      todo.update({
+        #{update_parts}
+      })
+    """
+
+    Repo.query(query)
+
   end
 
   @doc """
   Deletes a todo.
 
   ## Examples
-
-      iex> delete_todo(todo)
-      {:ok, %Todo{}}
-
-      iex> delete_todo(todo)
-      {:error, %Ecto.Changeset{}}
 
   """
   def delete_todo(%Todo{} = todo) do

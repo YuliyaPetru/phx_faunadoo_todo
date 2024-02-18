@@ -1,51 +1,36 @@
 defmodule PhxFaunaTodoWeb.TodoController do
   use PhxFaunaTodoWeb, :controller
+  alias PhxFaunaTodo.Todos
 
   action_fallback PhxFaunaTodoWeb.FallbackController
 
   def index(conn, _params) do
-    query = """
-      Todo.all()
-    """
-    execute_query(query, conn)
+    todos = Todos.list_todos()
+    json(conn, todos)
   end
 
-  def create(conn, %{"todo" => todo_params}) do
-    content = Map.get(todo_params, "todo", "")
-    completed = Map.get(todo_params, "completed", false)
-
-    query = """
-      Todo.create({"todo": "#{content}", "completed": #{completed}})
-    """
-
-    execute_query(query, conn)
+  def create(conn, %{"todo" => todo, "completed" => completed}) do
+    newtodo = Todos.create_todo(%{todo: todo, completed: completed})
+    json(conn, %{"todo" => newtodo })
   end
 
   def show(conn, %{"id" => id}) do
-    query = """
-      Todo.byId(#{id})
-    """
-
-    execute_query(query, conn)
+    todo = Todos.get_todo!(id)
+    json(conn, todo)
   end
 
-  def update(conn, %{"id" => id, "todo" => todo_params}) do
-
-    query = """
-      let toEdit = Todo.byId(#{id});
-      toEdit.update({ #{Jason.encode!(todo_params)} })
-    """
-
-    execute_query(query, conn)
+  def update(conn, %{"id" => id, "data" => todo_params}) do
+    updated = Todos.update_todo(%{id: id, todo_params: todo_params})
+    json(conn, %{"data" => updated })
   end
 
   def delete(conn, %{"id" => id}) do
-    query = """
-      let toDelete = Todo.byId(#{id})
-      toDelete.delete()
-    """
+    # query = """
+    #   let toDelete = Todo.byId(#{id})
+    #   toDelete.delete()
+    # """
 
-    execute_query(query, conn)
+    # execute_query(query, conn)
   end
 
   defp execute_query(query, conn) do

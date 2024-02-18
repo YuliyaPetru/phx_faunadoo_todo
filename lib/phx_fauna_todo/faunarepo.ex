@@ -1,4 +1,4 @@
-defmodule PhxFaunaTodo.Todos.Faunadoo do
+defmodule PhxFaunaTodo.Faunarepo do
   alias HTTPoison
 
   @fauna_url System.get_env("NEXT_PUBLIC_FAUNA_URL") || "https://db.fauna.com/query/1"
@@ -20,7 +20,7 @@ defmodule PhxFaunaTodo.Todos.Faunadoo do
 
     case HTTPoison.post(@fauna_url, Jason.encode!(body), headers, hackney: [ssl: [{:versions, '[tlsv1.2]'}]]) do
       {:ok, %{status_code: 200, body: response_body}} ->
-        {:ok, decode_response(response_body)}
+        decode_response(response_body)
 
       {:error, reason} ->
         {:error, "Failed to execute query: #{reason}"}
